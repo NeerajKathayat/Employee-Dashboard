@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Search from '../components/Search';
 import { Link } from 'react-router-dom';
+import EmployeeCard from '../components/EmployeeCard';
+import GridLoader from '../components/GridLoader';
+import Pagination from '../components/Pagination'; 
+import SearchFunc from '../components/SearchFunc';
 
 const Dashboard = () => {
   const [employees, setEmployees] = useState([]);
@@ -9,8 +12,8 @@ const Dashboard = () => {
   const [skip, setSkip] = useState(0);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [noResultsFound, setNoResultsFound] = useState(false); 
-  const [SearchKeyword, setSearchKeyword] = useState('')
+  const [noResultsFound, setNoResultsFound] = useState(false);
+  const [SearchKeyword, setSearchKeyword] = useState('');
   const limit = 30;
 
   useEffect(() => {
@@ -48,7 +51,7 @@ const Dashboard = () => {
     const updatedEmployees = employees.filter(employee => employee.id !== id);
     setEmployees(updatedEmployees);
     setFilteredEmployees(updatedEmployees);
-    setSearchKeyword('')
+    setSearchKeyword('');
   };
 
   const handleMultipleDelete = () => {
@@ -56,33 +59,38 @@ const Dashboard = () => {
     setEmployees(updatedEmployees);
     setFilteredEmployees(updatedEmployees);
     setSelectedIds([]);
-    setSearchKeyword('')
+    setSearchKeyword('');
   };
 
   const handleNext = () => {
     if (skip + limit < total) {
       setSkip((prevSkip) => prevSkip + limit);
     }
-
-    setSearchKeyword('')
+    setSearchKeyword('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePrevious = () => {
     if (skip > 0) {
       setSkip((prevSkip) => prevSkip - limit);
     }
-
-    setSearchKeyword('')
+    setSearchKeyword('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className='flex flex-col gap-2 m-2'>
-      <Search
+    <div className='flex flex-col gap-4 m-2'>
+        
+      <SearchFunc
         setFilteredEmployees={setFilteredEmployees}
         employees={employees}
-        setNoResultsFound={setNoResultsFound}  setLoading={setLoading} SearchKeyword={SearchKeyword}  setSearchKeyword={setSearchKeyword}
+        setNoResultsFound={setNoResultsFound}
+        setLoading={setLoading}
+        SearchKeyword={SearchKeyword}
+        setSearchKeyword={setSearchKeyword}
       />
 
+    <div className='px-5 text-2xl font-semibold uppercase text-center'>Employee Dashboard</div>
       {noResultsFound && (
         <div className="text-red-500">No results found</div>
       )}
@@ -93,51 +101,54 @@ const Dashboard = () => {
         </button>
       )}
 
-      <div className='flex gap-2 flex-wrap'>
+    
         {loading ? (
-          <div>Loading employee data...</div>
+             <GridLoader />
         ) : (
-          filteredEmployees.map((employee) => (
-            <div className="border border-black p-2 relative" key={employee.id}>
-              <Link to={`/employee/${employee.id}`} className="employee-card">
-                <img src={employee.image} alt="" />
-                <h3>{employee.firstName} {employee.lastName}</h3>
-                <p>Salary: ${employee.employee_salary}</p>
-                <p>BloodGroup: {employee.bloodGroup}</p>
-                <p>Age: {employee.age}</p>
-                <p>Designation: {employee.company.title}</p>
-                <p>Department: {employee.company.department}</p>
-              </Link>
-
-              <button onClick={(e) => handleDelete(employee.id, e)} className="absolute top-2 right-2">Delete</button>
-
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(employee.id)}
-                onChange={() => handleCheckboxChange(employee.id)}
-                className="absolute top-2 left-2"
-              />
-            </div>
-          ))
+          <div className='flex gap-2 flex-wrap justify-center'>
+              
+             {
+                filteredEmployees.map((employee) => (
+                    <div className="p-2 relative w-full max-w-[300px]" key={employee.id}>
+                      <Link to={`/employee/${employee.id}`} className="employee-card">
+                        <EmployeeCard className="hover:bg-gray-100"
+                          image={employee.image}
+                          name={`${employee.firstName} ${employee.lastName}`}
+                          designation={employee.company.title}
+                          department={employee.company.department}
+                          bloodGroup={employee.bloodGroup}
+                          age={employee.age}
+                          gender={employee.gender}
+                          
+                        />
+                      </Link>
+        
+                      <button onClick={(e) => handleDelete(employee.id, e)} className="absolute top-4 right-4 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                      <button className="absolute top-11 right-4 hover:text-red-500"> <i class="fa-solid fa-pen"></i></button>
+                     
+        
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(employee.id)}
+                        onChange={() => handleCheckboxChange(employee.id)}
+                        className="absolute top-6 left-3 cursor-pointer"
+                      />
+                    </div>
+                  ))
+             }
+          </div>
         )}
-      </div>
+    
 
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={handlePrevious}
-          disabled={skip === 0}
-          className="p-2 border border-black"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={skip + limit >= total}
-          className="p-2 border border-black"
-        >
-          Next
-        </button>
-      </div>
+     {!noResultsFound && (
+         <Pagination
+         handlePrevious={handlePrevious}
+         handleNext={handleNext}
+         skip={skip}
+         limit={limit}
+         total={total}
+       />
+     )}
     </div>
   );
 };
