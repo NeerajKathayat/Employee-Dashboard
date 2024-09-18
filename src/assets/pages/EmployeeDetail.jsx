@@ -105,7 +105,7 @@ const EmployeeDetail = () => {
 
                             <div className='flex justify-between'>
                                 <div>Employee ID:</div>
-                                <div>55{employee.id}</div>
+                                <div>{employee.id}</div>
                             </div>
 
                         </div>
